@@ -1,0 +1,115 @@
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Login</title>
+		<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+		<style>
+			/* Accordion styles */
+			.accordion {
+				cursor: pointer;
+				padding: 10px;
+				width: 100%;
+				text-align: left;
+				outline: none;
+				border: none;
+				background-color: #f1f1f1;
+				font-size: 18px;
+				font-weight: bold;
+			}
+
+			.accordion.active,
+			.accordion:hover {
+				background-color: #ddd;
+			}
+
+			.panel {
+				padding: 0 10px;
+				display: none;
+				overflow: hidden;
+				background-color: #f9f9f9;
+				border: 1px solid #ccc;
+			}
+
+			.panel form {
+				margin: 10px 0;
+			}
+
+			.btn {
+				margin-top: 10px;
+				padding: 10px;
+				background-color: #007bff;
+				color: white;
+				border: none;
+				cursor: pointer;
+			}
+
+			.btn:hover {
+				background-color: #0056b3;
+			}
+		</style>
+	</head>
+	<body>
+		<div align="center" class="border">
+			<div class="header">
+				<h1 class="word">Walmart Data Analysis</h1>
+			</div>
+			<br><br>
+
+			<!-- Accordion Section 1: Purchase Information -->
+			<button class="accordion">Purchase Information</button>
+			<div class="panel">
+				<form action="{{ url_for('login') }}" method="post">
+					<div class="msg">{{ msg }}</div>
+					<input id="invoice_id" name="invoice_id" type="text" placeholder="Enter Your Invoice ID" class="textbox" />
+					<br><br>
+					<input type="submit" class="btn" value="Search">
+				</form>
+			</div>
+
+			<!-- Accordion Section 2: Sales Analysis of Items -->
+			<button class="accordion">Sales Analysis of Items</button>
+			<div class="panel">
+				<form action="{{ url_for('process_sales_analysis') }}" method="post">
+					<p>View a bar chart for item sales analysis.</p>
+					<input type="submit" class="btn" value="View Chart">
+				</form>
+			</div>
+
+			<!-- Accordion Section 3: Sales Based on Branch -->
+			<button class="accordion">Sales Based on Branch</button>
+			<div class="panel">
+				<form action="{{ url_for('process_branch_sales') }}" method="post">
+					<p>Analyze sales based on branch.</p>
+					<input type="submit" class="btn" value="Analyze Branch Sales">
+				</form>
+			</div>
+
+			<!-- Accordion Section 4: Feedback from Customers -->
+			<button class="accordion">Feedback from Customers</button>
+			<div class="panel">
+				<form action="{{ url_for('process_customer_feedback') }}" method="post">
+					<p>View feedback collected from customers.</p>
+					<input type="submit" class="btn" value="View Feedback">
+				</form>
+			</div>
+		</div>
+
+		<script>
+			// JavaScript to handle accordion functionality
+			const accordions = document.querySelectorAll('.accordion');
+
+			accordions.forEach(accordion => {
+				accordion.addEventListener('click', function () {
+					this.classList.toggle('active');
+					const panel = this.nextElementSibling;
+					if (panel.style.display === 'block') {
+						panel.style.display = 'none';
+					} else {
+						panel.style.display = 'block';
+					}
+				});
+			});
+		</script>
+	</body>
+</html>
+
