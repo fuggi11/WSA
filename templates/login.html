@@ -1,115 +1,207 @@
 <html>
-	<head>
-		<meta charset="UTF-8">
-		<title>Login</title>
-		<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-		<style>
-			/* Accordion styles */
-			.accordion {
-				cursor: pointer;
-				padding: 10px;
-				width: 100%;
-				text-align: left;
-				outline: none;
-				border: none;
-				background-color: #f1f1f1;
-				font-size: 18px;
-				font-weight: bold;
-			}
+  <head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #259984;
+      }
 
-			.accordion.active,
-			.accordion:hover {
-				background-color: #ddd;
-			}
+      .container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        margin-top: 30px;
+      }
 
-			.panel {
-				padding: 0 10px;
-				display: none;
-				overflow: hidden;
-				background-color: #f9f9f9;
-				border: 1px solid #ccc;
-			}
+      .header {
+        text-align: center;
+        margin-bottom: 20px;
+      }
 
-			.panel form {
-				margin: 10px 0;
-			}
+      .word {
+        font-size: 30px;
+        font-weight: bold;
+		color:#120909;
+		padding: 10px;
+		background-color: #bdc1c2;
+      }
 
-			.btn {
-				margin-top: 10px;
-				padding: 10px;
-				background-color: #007bff;
-				color: white;
-				border: none;
-				cursor: pointer;
-			}
+      /* Flexbox layout for Dashboard */
+      .dashboard-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        width: auto;
+       
+        margin-top: 30px;
+        padding: 20px;
+      }
 
-			.btn:hover {
-				background-color: #0056b3;
-			}
-		</style>
-	</head>
-	<body>
-		<div align="center" class="border">
-			<div class="header">
-				<h1 class="word">Walmart Data Analysis</h1>
-			</div>
-			<br><br>
+      .info-section {
+        flex: 1;
+        padding: 20px;
+        background-color: #fff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin: 0 20px;
+        border-radius: 10px;
+      }
 
-			<!-- Accordion Section 1: Purchase Information -->
-			<button class="accordion">Purchase Information</button>
-			<div class="panel">
-				<form action="{{ url_for('login') }}" method="post">
-					<div class="msg">{{ msg }}</div>
-					<input id="invoice_id" name="invoice_id" type="text" placeholder="Enter Your Invoice ID" class="textbox" />
-					<br><br>
-					<input type="submit" class="btn" value="Search">
-				</form>
-			</div>
+      .info-section h3 {
+        font-weight: bold;
+        margin-bottom: 15px;
+      }
 
-			<!-- Accordion Section 2: Sales Analysis of Items -->
-			<button class="accordion">Sales Analysis of Items</button>
-			<div class="panel">
-				<form action="{{ url_for('process_sales_analysis') }}" method="post">
-					<p>View a bar chart for item sales analysis.</p>
-					<input type="submit" class="btn" value="View Chart">
-				</form>
-			</div>
+      .info-section p {
+        font-size: 18px;
+        line-height: 1.6;
+      }
 
-			<!-- Accordion Section 3: Sales Based on Branch -->
-			<button class="accordion">Sales Based on Branch</button>
-			<div class="panel">
-				<form action="{{ url_for('process_branch_sales') }}" method="post">
-					<p>Analyze sales based on branch.</p>
-					<input type="submit" class="btn" value="Analyze Branch Sales">
-				</form>
-			</div>
+      /* Chart container for images */
+      .chart-container {
+        flex: 1;
+        padding: 5px;
+        background-color: #fff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+       
+        border-radius: 10px;
+		height: 15cm;
+		width:15cm;
+        text-align: center;
+      }
 
-			<!-- Accordion Section 4: Feedback from Customers -->
-			<button class="accordion">Feedback from Customers</button>
-			<div class="panel">
-				<form action="{{ url_for('process_customer_feedback') }}" method="post">
-					<p>View feedback collected from customers.</p>
-					<input type="submit" class="btn" value="View Feedback">
-				</form>
-			</div>
-		</div>
+      .chart-container img {
+        width: 100%;
+        
+        height: 80%;
+      }
 
-		<script>
-			// JavaScript to handle accordion functionality
-			const accordions = document.querySelectorAll('.accordion');
+      /* Button and input styling */
+      .btn {
+        padding: 10px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+        margin-top: 10px;
+        width: 100%;
+        font-size: 16px;
+      }
 
-			accordions.forEach(accordion => {
-				accordion.addEventListener('click', function () {
-					this.classList.toggle('active');
-					const panel = this.nextElementSibling;
-					if (panel.style.display === 'block') {
-						panel.style.display = 'none';
-					} else {
-						panel.style.display = 'block';
-					}
-				});
-			});
-		</script>
-	</body>
+      .btn:hover {
+        background-color: #0056b3;
+      }
+
+      .summary-box {
+        margin: 20px;
+        padding: 20px;
+        background-color: #f1f1f1;
+        border-radius: 8px;
+        text-align: center;
+      }
+
+      .summary-box h3 {
+        margin: 10px 0;
+        font-weight: bold;
+      }
+
+      .summary-box p {
+        font-size: 18px;
+      }
+
+      /* Accordion Styles */
+      .accordion {
+        background-color: #62cebaff;
+        color: #0b0b0b;
+        cursor: pointer;
+        padding: 18px;
+        width: 100%;
+        border: none;
+        text-align: left;
+        outline: none;
+        font-size: 15px;
+        margin-top: 20px;
+      }
+
+      .accordion.active, .accordion:hover {
+        background-color: #ccc;
+      }
+
+      .panel {
+        padding: 0 18px;
+        display: none;
+        overflow: hidden;
+        background-color: #bdc1c2;
+      }
+
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1 class="word">Walmart Data Analysis Dashboard</h1>
+      </div>
+
+
+      <!-- Main Dashboard Content -->
+      <div class="dashboard-content">
+        <!-- Sales by Branch Graph -->
+        <div class="chart-container">
+          
+          <img src="{{ branch_graph }}" alt="Sales by Branch">
+        </div>
+
+        <!-- Information Section (Centered) -->
+        <div class="info-section">
+          <button class="accordion"><strong><h3>Purchase Information</h3></strong></button>
+		  <div class="panel">
+          <form action="{{ url_for('login') }}" method="post">
+            <div class="msg">{{ msg }}</div>
+            <input id="invoice_id" name="invoice_id" type="text" placeholder="Enter Your Invoice ID" class="textbox" />
+            <br><br>
+            <input type="submit" class="btn" value="Search">
+          </form></div>
+          
+          <button class="accordion"><h3><strong>Feedback from Customers</strong></h3></button>
+          <div class="panel">
+            <form action="{{ url_for('process_customer_feedback') }}" method="post">
+              <p><input id="feedback" name="feedback" type="text" placeholder="Enter Your Feedback" class="textbox" /></p>
+              <div class="msg1">{{ msg1 }}</div>
+              <input type="submit" class="btn" value="Submit">
+            </form>
+          </div>
+		  <!-- Total Sales and Average Rating Section (Centered) -->
+		  <div class="summary-box">
+			<h3>Total Sales: ${{ total_sales }}</h3>
+			<p>Average Rating: {{ average_rating }}</p>
+		  </div>
+        </div>
+
+        <!-- Top Selling Product Lines Graph -->
+        <div class="chart-container">
+          
+          <img src="{{ product_graph }}" alt="Top Selling Product Lines">
+        </div>
+      </div>
+
+    </div>
+
+    <script>
+      // JavaScript for Accordion
+      const accordions = document.querySelectorAll('.accordion');
+      accordions.forEach(accordion => {
+        accordion.addEventListener('click', function () {
+          this.classList.toggle('active');
+          const panel = this.nextElementSibling;
+          panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+        });
+      });
+    </script>
+  </body>
 </html>
-
