@@ -127,27 +127,40 @@
         font-size: 15px;
         margin-top: 20px;
       }
+          .log {
+      position: absolute; /* Position relative to the nearest positioned parent */
+      top: 10px; /* Distance from the top */
+      right: 10px; /* Distance from the right */
+      border-radius: 5px; /* Rounded corners */
+      background-color: #bdc1c2; /* Background color */
+      padding: 10px; /* Internal spacing inside the box */
+      width: 150px; /* Fixed width for the box */
+      text-align: center; /* Center-align text inside the box */
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional shadow for aesthetics */
+      }
 
       .accordion.active, .accordion:hover {
-        background-color: #ccc;
+        background-color: #5ff8b1;
       }
 
       .panel {
         padding: 0 18px;
         display: none;
         overflow: hidden;
-        background-color: #bdc1c2;
+        background-color: #dee2e3;
       }
 
     </style>
   </head>
 
   <body>
+    <div class="log">
+      <a href="/hist" class="word"><small>LOGIN</small></a>
+    </div>
     <div class="container">
       <div class="header">
         <h1 class="word">Walmart Data Analysis Dashboard</h1>
       </div>
-
 
       <!-- Main Dashboard Content -->
       <div class="dashboard-content">

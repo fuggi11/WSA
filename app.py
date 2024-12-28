@@ -50,7 +50,7 @@ def dashboard():
     branch_sales = cursor.fetchall()
 
     # Top-selling product lines
-    cursor.execute('SELECT Product_line, COUNT(*) as count FROM sales GROUP BY Product_line ORDER BY count DESC LIMIT 5')
+    cursor.execute('SELECT `Product line`, COUNT(*) as count FROM sales GROUP BY `Product line` ORDER BY count DESC LIMIT 5')
     top_selling_products = cursor.fetchall()
 
     cursor.close()
@@ -261,6 +261,74 @@ def render_t():
         branch_graph=branch_graph,
         product_graph=product_graph,
         top_selling_products=top_selling_products,msg1=msg1)
+@app.route('/hist', methods=['GET'])
+def hist():
+    return render_template('hist.html')
+from datetime import datetime
+
+@app.route('/hist_p', methods=['GET', 'POST'])
+def hist_p():
+    dis = ''
+    if request.method == 'POST' and 'phone' in request.form:
+        phone = request.form['phone']
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute(
+            'SELECT `Invoice ID`, Branch, City, `Customer type`, Gender, `Product line`, `Unit price`, Quantity, `Tax 5%`, Total, Date, Time, Payment, cogs, `gross margin percentage`, `gross income`, Rating, Phone '
+             'FROM sales WHERE Phone = %s', (phone,)
+        )
+        data = cursor.fetchall()
+        
+        if data:
+            # Generate fancy message for each transaction
+            dis = ""
+            for transaction in data:
+                # Fancy Message Combining Columns
+                date_obj = datetime.strptime(transaction['Date'], '%Y-%m-%d')
+                message = (
+                    f"On {date_obj.strftime('%A, %B %d, %Y')} at {transaction['Time']} in {transaction['City']} "
+                    f"(Branch {transaction['Branch']}), a {transaction['Gender']} {transaction['Customer type']} customer purchased "
+                    f"from the {transaction['Product line']} line. The total amount was ${transaction['Total']:.2f} "
+                    f"and the payment was made using {transaction['Payment']}. Rating: {transaction['Rating']}/10."
+                )
+                dis += f"<p>{message}</p><br>"
+
+            # Table of Other Details
+            dis += """
+            <table class="table">
+                <tr>
+                    <th>Invoice ID</th>
+                    <th>Product Line</th>
+                    <th>Unit Price</th>
+                    <th>Quantity</th>
+                    <th>Tax 5%</th>
+                    <th>Total</th>
+                    <th>Payment</th>
+                    <th>Rating</th>
+                </tr>
+            """
+            for transaction in data:
+                dis += f"""
+                <tr>
+                    <td>{transaction['Invoice ID']}</td>
+                    <td>{transaction['Product line']}</td>
+                    <td>${transaction['Unit price']:.2f}</td>
+                    <td>{transaction['Quantity']}</td>
+                    <td>${transaction['Tax 5%']:.2f}</td>
+                    <td>${transaction['Total']:.2f}</td>
+                    <td>{transaction['Payment']}</td>
+                    <td>{transaction['Rating']}</td>
+                </tr>
+                """
+            dis += "</table>"
+
+        else:
+            dis = 'No transactions found for this phone number.'
+        
+        cursor.close()
+        connection.close()
+    
+    return render_template('hist.html', dis=dis)
 
 if __name__ == '__main__':
     app.run(debug=True, port=8000)

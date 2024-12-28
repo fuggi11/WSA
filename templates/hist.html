@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction History</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #259984;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .accordion {
+            background-color: #94f8e6;
+            color: rgb(12, 7, 7);
+            cursor: pointer;
+            padding: 15px;
+            text-align: left;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            width: 100%;
+            transition: background-color 0.3s ease;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .accordion:hover {
+            background-color: #42e6cb;
+        }
+
+        .panel {
+            display: none;
+            overflow: hidden;
+            background-color: #f9f9f9;
+            padding: 10px;
+            margin-top: 5px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+
+        .table th, .table td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        .table th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+            background-color: #f4f4f9;
+        }
+
+        .card h3 {
+            margin: 0;
+            color: #007bff;
+        }
+
+        .card p {
+            margin: 5px 0;
+        }
+
+        .btn {
+            display: block;
+            margin: 10px auto;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+  dis=''
+    <div class="container">
+        <h1>Welcome to Walmart</h1>
+        
+        <!-- Accordion for Transaction History -->
+        <button class="accordion">Purchase Information</button>
+		  <div class="panel">
+          <form action="{{ url_for('hist_p') }}" method="post">
+              <div>{{ dis|safe }}</div>
+            <input id="phone" name="phone" type="text" placeholder="Enter Your Phone no" class="textbox" />
+            <br><br>
+            <input type="submit" class="btn" value="Search">
+        </div></form>
+
+        <!-- Accordion for Shop -->
+        <button class="accordion">Shop</button>
+        <div class="panel">
+            <p>Ready to shop? <a href="/shop" class="btn">Go to Shop</a></p>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript for Accordion Functionality
+        const accordions = document.querySelectorAll('.accordion');
+        accordions.forEach(accordion => {
+            accordion.addEventListener('click', function () {
+                this.classList.toggle('active');
+                const panel = this.nextElementSibling;
+                panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+            });
+        });
+    </script>
+</body>
+</html>
