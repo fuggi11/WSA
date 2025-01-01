@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Best Picks for You</title>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Best Picks for You</h2>
+        {% if best_picks %}
+            <div class="card-container">
+                {% for pick in best_picks %}
+                    <div class="card">
+                        <img src="{{ pick.image }}" alt="{{ pick.category }}" class="card-img">
+                        <h3>{{ pick.category }}</h3>
+                        <p>{{ pick.description }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="no-picks-message">No suggestions available based on your transaction history.</p>
+        {% endif %}
+        <a href="{{ url_for('hist') }}" class="go-back-link">Go Back</a>
+    </div>
+
+</body>
+</html>
+
+

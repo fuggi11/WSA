@@ -1,11 +1,13 @@
 from flask import Flask, render_template, request, redirect, url_for, session, Response
-import mysql.connector
+
+import mysql.connector  # type: ignore
 import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.use('Agg') 
 import io
 import base64
 import pandas as pd
+TF_ENABLE_ONEDNN_OPTS=0
 msg=''
 total_sales=''
 average_rating=''
@@ -20,7 +22,7 @@ db_config = {
     'host': 'localhost',
     'user': 'root',
     'password': 'Aji2611#',
-    'database': 'walmartsales'
+    'database': 'walmart'
 }
 
 def get_db_connection():
@@ -61,7 +63,11 @@ def dashboard():
     product_df = pd.DataFrame(top_selling_products, columns=['product_line', 'count'])
 
     # Define bright colors
-    bright_colors = ['#FFD700', '#FF6347', '#90EE90', '#ADD8E6', '#FF69B4', '#FF4500', '#32CD32']
+    bright_colors = ['#ADD8E6', '#87CEEB', '#B0E0E6', '#AFEEEE', '#E0FFFF', '#D1EEEE', '#99CCFF']
+
+
+
+
 
     # Sales by Branch Pie Chart
     plt.figure(figsize=(8, 8))
@@ -211,48 +217,132 @@ def process_branch_sales():
     # Encode the image in base64
     graph_url = base64.b64encode(img.getvalue()).decode('utf8')
     return render_template('login.html', branch_graph=f"data:image/png;base64,{graph_url}")
-@app.route('/process_customer_feedback', methods=['POST'])
+from transformers import pipeline
 
+sentiment_analyzer = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english", framework="pt")
+
+def fetch_dashboard_data():
+    # Reconnect to the database to fetch the necessary information for the dashboard
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    bright_colors = ['#ADD8E6', '#87CEEB', '#B0E0E6', '#AFEEEE', '#E0FFFF', '#D1EEEE', '#99CCFF']
+    # Fetch total sales
+    cursor.execute('SELECT SUM(Total) FROM sales')
+    total_sales = cursor.fetchone()[0]
+
+    # Fetch average rating
+    cursor.execute('SELECT AVG(Rating) FROM sales')
+    average_rating = cursor.fetchone()[0]
+
+    # Fetch sales by branch
+    cursor.execute('SELECT Branch, COUNT(*) as count FROM sales GROUP BY Branch')
+    branch_sales = cursor.fetchall()
+
+    # Fetch top-selling product lines
+    cursor.execute('SELECT `Product line`, COUNT(*) as count FROM sales GROUP BY `Product line` ORDER BY count DESC LIMIT 5')
+    top_selling_products = cursor.fetchall()
+
+    cursor.close()
+    connection.close()
+
+    # Prepare data for visualization (Sales by Branch and Product Lines)
+    branch_df = pd.DataFrame(branch_sales, columns=['branch', 'count'])
+    product_df = pd.DataFrame(top_selling_products, columns=['product_line', 'count'])
+
+    # Sales by Branch Pie Chart
+    plt.figure(figsize=(8, 8))
+    patches, texts, autotexts = plt.pie(
+        branch_df['count'],
+        colors=bright_colors[:len(branch_df)],
+        autopct='%1.1f%%',
+        startangle=90,
+        textprops={'fontsize': 16, 'fontweight': 'bold'}  # Make text bold and large
+    )
+    plt.legend(patches, branch_df['branch'], loc='upper left', title="Branches", fontsize=12)
+    plt.title('Sales Distribution by Branch', fontsize=18, fontweight='bold')
+    img_branch = io.BytesIO()
+    plt.tight_layout()
+    plt.savefig(img_branch, format='png', dpi=300)
+    img_branch.seek(0)
+    plt.close()
+
+    # Top Selling Product Lines Pie Chart
+    plt.figure(figsize=(8, 8))
+    patches, texts, autotexts = plt.pie(
+        product_df['count'],
+        colors=bright_colors[:len(product_df)],
+        autopct='%1.1f%%',
+        startangle=90,
+        textprops={'fontsize': 16, 'fontweight': 'bold'}  # Make text bold and large
+    )
+    plt.legend(patches, product_df['product_line'], loc='upper left', title="Product Lines", fontsize=12)
+    plt.title('Top Selling Product Lines Distribution', fontsize=18, fontweight='bold')
+    img_product = io.BytesIO()
+    plt.tight_layout()
+    plt.savefig(img_product, format='png', dpi=300)
+    img_product.seek(0)
+    plt.close()
+
+    # Encode the images in base64
+    branch_graph = base64.b64encode(img_branch.getvalue()).decode('utf8')
+    branch_graph = f"data:image/png;base64,{branch_graph}"
+
+    product_graph = base64.b64encode(img_product.getvalue()).decode('utf8')
+    product_graph = f"data:image/png;base64,{product_graph}"
+
+    return total_sales, average_rating, branch_graph, product_graph, top_selling_products
+
+@app.route('/process_customer_feedback', methods=['POST'])
 def process_customer_feedback():
-   
-    cursor=None
-    connection=None
+    msg1 = ''
     if request.method == 'POST':
         feedback = request.form.get('feedback')  # Safely retrieve feedback from the form
         if feedback:
             try:
-                # Use the feedback database connection
+                # Perform sentiment analysis on feedback
+                sentiment = sentiment_analyzer(feedback)[0]
+                sentiment_label = sentiment['label']
+                sentiment_score = sentiment['score']
+
+                # Connect to the database
                 connection = get_db_connection()
                 if connection:
-                    print("Database connection successful.")  # Debugging log
+                    cursor = connection.cursor(dictionary=True)
+                    # Insert feedback and sentiment into the database
+                    cursor.execute(
+                        'INSERT INTO feedback (feedback_text, sentiment_label, sentiment_score) VALUES (%s, %s, %s)',
+                        (feedback, sentiment_label, sentiment_score)
+                    )
+                    connection.commit()
+
+                    # Generate a response message based on sentiment
+                    if sentiment_label == "POSITIVE":
+                        msg1 = f"Thank you for your positive feedback! 🌟 (Sentiment Score: {sentiment_score:.2f})"
+                    elif sentiment_label == "NEGATIVE":
+                        msg1 = f"We're sorry to hear that. 😔 We'll work on improving! (Sentiment Score: {sentiment_score:.2f}) Suggestions: Please share more details to help us improve."
+                    else:
+                        msg1 = f"Thanks for your feedback! (Sentiment Score: {sentiment_score:.2f})"
+
                 else:
-                    print("Database connection failed.")  # Debugging log
-                
-                # Attempt to create a cursor
-                cursor = connection.cursor(dictionary=True)
-                if cursor:
-                    print("Cursor creation successful.")  # Debugging log
-                else:
-                    print("Cursor creation failed.")  # Debugging log
-                # Insert feedback into the feedback database
-                cursor.execute('INSERT INTO feedback (feedback_text) VALUES (%s)', (feedback,))
-                connection.commit()
-                
-                msg1 = 'Feedback submitted successfully!'
+                    msg1 = 'Failed to connect to the database.'
             except mysql.connector.Error as err:
-                msg1 = f"Error: {err}"
+                msg1 = f"Database Error: {err}"
             finally:
-                cursor.close()
-                connection.close()
+                if cursor:
+                    cursor.close()
+                if connection:
+                    connection.close()
         else:
             msg1 = 'Feedback cannot be empty.'
-        dashboard()
-        return render_template('login.html', msg=msg,
-        total_sales=total_sales,
-        average_rating=average_rating,
-        branch_graph=branch_graph,
-        product_graph=product_graph,
-        top_selling_products=top_selling_products,msg1=msg1)
+        total_sales, average_rating, branch_graph, product_graph, top_selling_products = fetch_dashboard_data()
+        return render_template('login.html', 
+                       msg=msg,
+                       total_sales=total_sales,
+                       average_rating=average_rating,
+                       branch_graph=branch_graph,
+                       product_graph=product_graph,
+                       top_selling_products=top_selling_products,
+                       msg1=msg1)
 
 def render_t():
        return render_template('login.html', msg=msg,
@@ -265,6 +355,9 @@ def render_t():
 def hist():
     return render_template('hist.html')
 from datetime import datetime
+@app.route('/best', methods=['GET'])
+def best():
+    return render_template('best_picks.html')
 
 @app.route('/hist_p', methods=['GET', 'POST'])
 def hist_p():
@@ -329,6 +422,45 @@ def hist_p():
         connection.close()
     
     return render_template('hist.html', dis=dis)
+import os
+@app.route('/best_picks', methods=['POST'])
+def best_picks():
+    if 'phone' in request.form:
+        phone = request.form['phone']
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
+
+        # Query to get transactions for the phone number
+        cursor.execute('SELECT `Product line`, COUNT(*) as count FROM sales WHERE Phone = %s GROUP BY `Product line` ORDER BY count DESC LIMIT 3', (phone,))
+        top_categories = cursor.fetchall()
+
+        # Generate best picks based on categories and multiple images per category
+        best_picks = []
+        for category in top_categories:
+            # Assuming you have a naming convention for images like category_1.jpg, category_2.jpg, etc.
+            category_name = category["Product line"]
+            images = []
+            for i in range(1, 4):  # Let's assume you want to show up to 3 images per category
+                image_path_1 = f"/static/{category_name}{i}.jpeg"
+                image_path_2 = f"/static/{category_name}{i}.jpg"
+                
+                if os.path.exists(f"static/{category_name}{i}.jpg"):
+                    image_path = image_path_2
+                elif os.path.exists(f"static/{category_name}{i}.jpeg"):
+                    image_path = image_path_1
+                else:
+                     continue
+                best_picks.append({
+                    "category": category["Product line"],
+                    "description": f"Explore more from {category['Product line']}!",
+                    "image": image_path  
+                })
+
+        cursor.close()
+        connection.close()
+        return render_template('best_picks.html', best_picks=best_picks, phone=phone)
+    return redirect(url_for('hist'))  # Redirect back to history page if no phone number
+ # Redirect back to history page if no phone number
 
 if __name__ == '__main__':
     app.run(debug=True, port=8000)

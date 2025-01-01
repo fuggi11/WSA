@@ -8,7 +8,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #259984;
+            background-color: 6fa7a7;
             margin: 0;
             padding: 0;
         }
@@ -24,11 +24,11 @@
 
         h1 {
             text-align: center;
-            color: #333;
+            color: #055276;
         }
 
         .accordion {
-            background-color: #94f8e6;
+            background-color: #01abd1;
             color: rgb(12, 7, 7);
             cursor: pointer;
             padding: 15px;
@@ -106,7 +106,6 @@
     </style>
 </head>
 <body>
-  dis=''
     <div class="container">
         <h1>Welcome to Walmart</h1>
         
@@ -123,7 +122,12 @@
         <!-- Accordion for Shop -->
         <button class="accordion">Shop</button>
         <div class="panel">
-            <p>Ready to shop? <a href="/shop" class="btn">Go to Shop</a></p>
+            <form action="{{ url_for('best_picks') }}" method="POST">
+                <input type="text" name="phone" placeholder="Enter your phone number">
+                <button type="submit">Submit</button>
+            </form>
+            
+            <p>Ready to shop? <a href="/best" class="btn">Go to Shop</a></p>
         </div>
     </div>
 
